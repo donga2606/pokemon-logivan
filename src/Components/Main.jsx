@@ -47,6 +47,7 @@ const Main = () => {
       item.name.includes(searchValue)
     );
     setNarrowedData(filteredData);
+    setCurrentPage(1);
   };
   useEffect(() => {
     pokeFun();
