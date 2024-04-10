@@ -8,53 +8,59 @@ import { useState } from "react";
 import { useEffect } from "react";
 
 const itemsPerPage = 10;
-const pokemonUrl = "https://pokeapi.co/api/v2/pokemon?offset=0&limit=100";
+
 const Main = () => {
+  const search = window.location.search;
+  const params = new URLSearchParams(search);
   const [pokeData, setPokeData] = useState([]);
-  const [narrowedData, setNarrowedData] = useState([]);
+//   const [narrowedData, setNarrowedData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pokeDex, setPokeDex] = useState();
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(params?.get("page") || 1);
   const changeCurrentPage = (page) => {
     setCurrentPage(page);
   };
-  const totalPage = narrowedData.length / itemsPerPage;
-  const currentData = narrowedData.slice(
-    (currentPage - 1) * itemsPerPage,
-    (currentPage - 1) * itemsPerPage + itemsPerPage
-  );
+  const pokemonUrl = (page) => {
+    const offset = (page - 1) * itemsPerPage;
+    return `https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=${itemsPerPage}`;
+  };
+//   const currentData = narrowedData.slice(
+//     (currentPage - 1) * itemsPerPage,
+//     (currentPage - 1) * itemsPerPage + itemsPerPage
+//   );
   const pokeFun = async () => {
     setLoading(true);
     setPokeData([]);
-    const res = await axios.get(pokemonUrl);
-    getPokemon(res.data.results);
+    const res = await axios.get(pokemonUrl(currentPage));
+    setPokeData(res.data.results);
+    // getPokemon(res.data.results);
     setLoading(false);
   };
-  const getPokemon = async (res) => {
-    res.map(async (item) => {
-      const result = await axios.get(item.url);
-      setPokeData((state) => {
-        state = [...state, result.data];
-        state.sort((a, b) => (a.id > b.id ? 1 : -1));
-        return state;
-      });
-    });
-  };
+  //   const getPokemon = async (res) => {
+  //     res.map(async (item) => {
+  //       const result = await axios.get(item.url);
+  //       setPokeData((state) => {
+  //         state = [...state, result.data];
+  //         state.sort((a, b) => (a.id > b.id ? 1 : -1));
+  //         return state;
+  //       });
+  //     });
+  //   };
 
   const onHandleSearch = (e) => {
     const searchValue = e.target.value;
     const filteredData = pokeData.filter((item) =>
       item.name.includes(searchValue)
     );
-    setNarrowedData(filteredData);
+    // setNarrowedData(filteredData);
     setCurrentPage(1);
   };
   useEffect(() => {
     pokeFun();
-  }, []);
-  useEffect(() => {
-    setNarrowedData(pokeData);
-  }, [pokeData]);
+  }, [currentPage]);
+//   useEffect(() => {
+//     setNarrowedData(pokeData);
+//   }, [pokeData]);
   return (
     <>
       <div className="container">
@@ -62,19 +68,19 @@ const Main = () => {
           <Pokeinfo data={pokeDex} />
         </div>
         <div className="right-container">
-          <div className="search">
+          {/* <div className="search">
             <input onChange={onHandleSearch}></input>
-          </div>
+          </div> */}
           <div className="card-wrapper">
             <Card
-              pokemon={currentData}
+              pokemon={pokeData}
               loading={loading}
               infoPokemon={(poke) => setPokeDex(poke)}
             />
           </div>
           <Pagination
             currentPage={currentPage}
-            totalPages={totalPage}
+            totalPages={10}
             changeCurrentPage={changeCurrentPage}
             theme="bottom-border"
           />
